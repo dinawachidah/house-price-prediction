@@ -296,7 +296,7 @@ st.markdown("""
 # ===============================
 @st.cache_resource
 def load_model():
-    return joblib.load("xgb_bo2.pkl")
+    return joblib.load("xgb_bo2_v2.pkl")
 
 model = load_model()
 
@@ -631,4 +631,5 @@ st.markdown("""
         Powered by XGBoost + Bayesian Optimization
     </p>
 </div>
+
 """, unsafe_allow_html=True)
