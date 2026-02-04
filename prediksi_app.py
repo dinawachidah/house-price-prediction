@@ -631,5 +631,4 @@ st.markdown("""
         Powered by XGBoost + Bayesian Optimization
     </p>
 </div>
-
 """, unsafe_allow_html=True)
