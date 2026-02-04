@@ -316,11 +316,11 @@ st.markdown("""
 # ===============================
 @st.cache_resource
 def load_model():
-    return joblib.load("model_xgb_bo.pkl")
+    return joblib.load("xgb_bo2.pkl")
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv("rumah_tebet.csv")
+    df = pd.read_csv("DATA-RUMAH.csv")
     df.drop(["NO", "NAMA RUMAH"], axis=1, inplace=True, errors="ignore")
     df["RASIO_LB_LT"] = df["LB"] / (df["LT"] + 1)
     return df
@@ -847,3 +847,4 @@ st.markdown("""
     </p>
 </div>
 """, unsafe_allow_html=True)
+
