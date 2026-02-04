@@ -316,11 +316,11 @@ st.markdown("""
 # ===============================
 @st.cache_resource
 def load_model():
-    return joblib.load("xgb_bo2.pkl")
+    return joblib.load("model_xgb_bo.pkl")
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv("DATA-RUMAH.csv")
+    df = pd.read_csv("rumah_tebet.csv")
     df.drop(["NO", "NAMA RUMAH"], axis=1, inplace=True, errors="ignore")
     df["RASIO_LB_LT"] = df["LB"] / (df["LT"] + 1)
     return df
@@ -633,19 +633,38 @@ elif menu == "📈 Evaluasi Model":
     st.markdown("<div class='card'>", unsafe_allow_html=True)
     st.markdown("<h3>✅ Kesimpulan Evaluasi</h3>", unsafe_allow_html=True)
     
-    st.success(f"""
-    **Model XGBoost dengan Bayesian Optimization ini memiliki performa yang sangat baik untuk prediksi harga rumah di Tebet:**
-    
-    ✅ **R² Score = {R2_TEST:.4f}** → Termasuk kategori "**Baik - Sangat Baik**"
-    
-    ✅ **Akurasi Tinggi** → Model dapat menjelaskan **{R2_TEST*100:.2f}%** variasi harga
-    
-    ✅ **Generalisasi Baik** → Gap train-test hanya **{gap:.4f}** (rendah)
-    
-    ✅ **Reliable** → Rata-rata kesalahan (MAE) sebesar Rp {MAE_TEST/1e9:.2f} Miliar
-    
-    **Model ini layak digunakan sebagai sistem pendukung keputusan untuk estimasi harga properti di kawasan Tebet.**
-    """)
+    st.markdown(f"""
+    <div style='background: linear-gradient(135deg, #4caf50 0%, #45a049 100%); 
+                padding: 2rem; border-radius: 15px; color: white; 
+                box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);'>
+        <h4 style='color: white; margin-top: 0; font-size: 1.3rem;'>
+            Model XGBoost dengan Bayesian Optimization ini memiliki performa yang sangat baik untuk prediksi harga rumah di Tebet:
+        </h4>
+        
+        <div style='margin: 1.5rem 0;'>
+            <p style='color: white; font-size: 1.05rem; margin: 0.8rem 0; line-height: 1.6;'>
+                ✅ <strong>R² Score = {R2_TEST:.4f}</strong> → Termasuk kategori "<strong>Baik - Sangat Baik</strong>"
+            </p>
+            
+            <p style='color: white; font-size: 1.05rem; margin: 0.8rem 0; line-height: 1.6;'>
+                ✅ <strong>Akurasi Tinggi</strong> → Model dapat menjelaskan <strong>{R2_TEST*100:.2f}%</strong> variasi harga
+            </p>
+            
+            <p style='color: white; font-size: 1.05rem; margin: 0.8rem 0; line-height: 1.6;'>
+                ✅ <strong>Generalisasi Baik</strong> → Gap train-test hanya <strong>{gap:.4f}</strong> (rendah)
+            </p>
+            
+            <p style='color: white; font-size: 1.05rem; margin: 0.8rem 0; line-height: 1.6;'>
+                ✅ <strong>Reliable</strong> → Rata-rata kesalahan (MAE) sebesar <strong>Rp {MAE_TEST/1e9:.2f} Miliar</strong>
+            </p>
+        </div>
+        
+        <p style='color: white; font-size: 1.1rem; margin: 1.5rem 0 0 0; font-weight: 600; 
+                  border-top: 2px solid rgba(255,255,255,0.3); padding-top: 1rem;'>
+            Model ini layak digunakan sebagai sistem pendukung keputusan untuk estimasi harga properti di kawasan Tebet.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -847,4 +866,3 @@ st.markdown("""
     </p>
 </div>
 """, unsafe_allow_html=True)
-
