@@ -316,11 +316,11 @@ st.markdown("""
 # ===============================
 @st.cache_resource
 def load_model():
-    return joblib.load("xgb_bo2.pkl")
+    return joblib.load("model_xgb_bo.pkl")
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv("DATA-RUMAH.csv")
+    df = pd.read_csv("rumah_tebet.csv")
     df.drop(["NO", "NAMA RUMAH"], axis=1, inplace=True, errors="ignore")
     df["RASIO_LB_LT"] = df["LB"] / (df["LT"] + 1)
     return df
@@ -570,15 +570,29 @@ elif menu == "📈 Evaluasi Model":
     ]
     
     for range_val, label, color, icon in categories:
-        is_current = (R2_TEST >= 0.70 and R2_TEST <= 0.90 and "0.70-0.90" in range_val)
+        # PERBAIKAN: Logika deteksi yang benar untuk SEMUA kategori
+        if "< 0.50" in range_val:
+            is_current = R2_TEST < 0.50
+        elif "0.50-0.70" in range_val:
+            is_current = 0.50 <= R2_TEST < 0.70
+        elif "0.70-0.90" in range_val:
+            is_current = 0.70 <= R2_TEST < 0.90
+        else:  # > 0.90
+            is_current = R2_TEST >= 0.90
+        
+        # Background gradient jika ini kategori model Anda
+        bg_style = f"linear-gradient(135deg, {color} 0%, {color}dd 100%)" if is_current else "#f5f5f5"
+        text_color = "white" if is_current else "#333"
+        border = f"3px solid {color}" if is_current else "1px solid #e0e0e0"
+        font_weight = "bold" if is_current else "normal"
         
         st.markdown(f"""
-        <div style='background: {"linear-gradient(135deg, " + color + " 0%, " + color + "dd 100%)" if is_current else "#f5f5f5"}; 
+        <div style='background: {bg_style}; 
                     padding: 1rem; border-radius: 10px; margin-bottom: 0.5rem;
-                    border: {"3px solid " + color if is_current else "1px solid #e0e0e0"};'>
-            <p style='margin: 0; color: {"white" if is_current else "#333"}; font-weight: {"bold" if is_current else "normal"};'>
+                    border: {border};'>
+            <p style='margin: 0; color: {text_color}; font-weight: {font_weight};'>
                 {icon} <strong>{range_val}</strong>: {label}
-                {"<span style='float: right; font-size: 1.2rem;'>👈 Model Anda</span>" if is_current else ""}
+                {"<span style='float: right; font-size: 1.2rem;'>👉 Model Anda</span>" if is_current else ""}
             </p>
         </div>
         """, unsafe_allow_html=True)
