@@ -1,0 +1,561 @@
+/* ============================================================================
+   CUSTOM CSS UNTUK SISTEM PREDIKSI HARGA RUMAH TEBET
+   ============================================================================
+   File: style.css
+   Author: Dina Wachidah Septiana (4611422027)
+   ============================================================================ */
+
+/* ============================================================================
+   GLOBAL STYLING
+   ============================================================================ */
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+
+/* Reset default Streamlit styling */
+* {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Main container background */
+.main {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    padding: 2rem;
+}
+
+/* Sidebar styling */
+.css-1d391kg {
+    background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+}
+
+.css-1d391kg .css-1v0mbdj {
+    color: white;
+}
+
+/* ============================================================================
+   HEADER & TITLE
+   ============================================================================ */
+
+h1 {
+    color: #2c3e50;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 0.5rem;
+    font-size: 2.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    color: #34495e;
+    font-weight: 700;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+h3 {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+/* ============================================================================
+   METRIC CARDS / BADGES
+   ============================================================================ */
+
+.metric-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-align: center;
+    margin: 1rem 0;
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.metric-card h3 {
+    color: #2c3e50;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.metric-card h1 {
+    color: #667eea;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0.5rem 0;
+}
+
+.metric-card p {
+    color: #7f8c8d;
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+/* Badge with gradient background */
+.badge-r2 {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.badge-rmse {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(240, 147, 251, 0.3);
+}
+
+.badge-mae {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(79, 172, 254, 0.3);
+}
+
+.badge-r2 h1, .badge-rmse h1, .badge-mae h1 {
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================================================
+   PREDICTION RESULT CARD
+   ============================================================================ */
+
+.prediction-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2.5rem;
+    border-radius: 20px;
+    text-align: center;
+    margin: 2rem 0;
+    box-shadow: 0 15px 50px rgba(102, 126, 234, 0.4);
+    animation: slideUp 0.5s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.prediction-card h2 {
+    color: white;
+    font-size: 1.3rem;
+    margin: 0;
+    font-weight: 600;
+}
+
+.prediction-card h1 {
+    color: white;
+    font-size: 3.5rem;
+    margin: 1rem 0;
+    font-weight: 800;
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+    letter-spacing: -1px;
+}
+
+.prediction-card p {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* ============================================================================
+   BUTTONS
+   ============================================================================ */
+
+.stButton > button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    width: 100%;
+}
+
+.stButton > button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.stButton > button:active {
+    transform: translateY(0);
+    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+}
+
+/* ============================================================================
+   INPUT FIELDS
+   ============================================================================ */
+
+.stNumberInput > div > div > input,
+.stTextInput > div > div > input {
+    border: 2px solid #e0e6ed;
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background-color: white;
+}
+
+.stNumberInput > div > div > input:focus,
+.stTextInput > div > div > input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+}
+
+/* Input labels */
+label {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+    display: inline-block;
+}
+
+/* ============================================================================
+   FILE UPLOADER
+   ============================================================================ */
+
+.stFileUploader {
+    border: 2px dashed #667eea;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.stFileUploader:hover {
+    border-color: #764ba2;
+    background: #f8f9ff;
+}
+
+/* ============================================================================
+   DATAFRAME / TABLE
+   ============================================================================ */
+
+.dataframe {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+}
+
+.dataframe thead tr th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    font-weight: 600;
+    padding: 1rem !important;
+    text-align: center !important;
+}
+
+.dataframe tbody tr:nth-child(even) {
+    background-color: #f8f9ff;
+}
+
+.dataframe tbody tr:hover {
+    background-color: #e8ebff;
+    transition: background-color 0.2s ease;
+}
+
+.dataframe tbody td {
+    padding: 0.75rem !important;
+    text-align: center !important;
+    color: #2c3e50;
+}
+
+/* ============================================================================
+   INFO BOXES / ALERTS
+   ============================================================================ */
+
+.stAlert {
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    margin: 1rem 0;
+    border-left: 5px solid;
+}
+
+/* Info box (blue) */
+div[data-testid="stAlert"] > div:first-child[style*="rgb(12, 131, 218)"] {
+    background: linear-gradient(90deg, rgba(12, 131, 218, 0.1) 0%, rgba(12, 131, 218, 0.05) 100%);
+    border-left-color: #0c83da;
+}
+
+/* Success box (green) */
+div[data-testid="stAlert"] > div:first-child[style*="rgb(9, 171, 59)"] {
+    background: linear-gradient(90deg, rgba(9, 171, 59, 0.1) 0%, rgba(9, 171, 59, 0.05) 100%);
+    border-left-color: #09ab3b;
+}
+
+/* Warning box (orange) */
+div[data-testid="stAlert"] > div:first-child[style*="rgb(255, 145, 0)"] {
+    background: linear-gradient(90deg, rgba(255, 145, 0, 0.1) 0%, rgba(255, 145, 0, 0.05) 100%);
+    border-left-color: #ff9100;
+}
+
+/* Error box (red) */
+div[data-testid="stAlert"] > div:first-child[style*="rgb(255, 43, 43)"] {
+    background: linear-gradient(90deg, rgba(255, 43, 43, 0.1) 0%, rgba(255, 43, 43, 0.05) 100%);
+    border-left-color: #ff2b2b;
+}
+
+/* ============================================================================
+   TABS
+   ============================================================================ */
+
+.stTabs [data-baseweb="tab-list"] {
+    gap: 1rem;
+    background-color: transparent;
+    border-bottom: 2px solid #e0e6ed;
+}
+
+.stTabs [data-baseweb="tab"] {
+    height: 3.5rem;
+    padding: 0 2rem;
+    background-color: white;
+    border-radius: 10px 10px 0 0;
+    font-weight: 600;
+    color: #7f8c8d;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.stTabs [data-baseweb="tab"]:hover {
+    background-color: #f8f9ff;
+    color: #667eea;
+}
+
+.stTabs [aria-selected="true"] {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border-color: transparent !important;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+/* ============================================================================
+   EXPANDER
+   ============================================================================ */
+
+.streamlit-expanderHeader {
+    background: white;
+    border-radius: 10px;
+    padding: 1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    border: 2px solid #e0e6ed;
+    transition: all 0.3s ease;
+}
+
+.streamlit-expanderHeader:hover {
+    border-color: #667eea;
+    background: #f8f9ff;
+}
+
+/* ============================================================================
+   DOWNLOAD BUTTON
+   ============================================================================ */
+
+.stDownloadButton > button {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(17, 153, 142, 0.3);
+}
+
+.stDownloadButton > button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(17, 153, 142, 0.5);
+    background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
+}
+
+/* ============================================================================
+   FOOTER
+   ============================================================================ */
+
+.footer {
+    text-align: center;
+    color: #7f8c8d;
+    padding: 2rem;
+    margin-top: 3rem;
+    border-top: 2px solid #e0e6ed;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
+}
+
+.footer p {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+.footer strong {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+/* ============================================================================
+   MATPLOTLIB PLOTS
+   ============================================================================ */
+
+.js-plotly-plot .plotly {
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    background: white;
+    padding: 1rem;
+    margin: 1.5rem 0;
+}
+
+/* ============================================================================
+   SPINNER / LOADING
+   ============================================================================ */
+
+.stSpinner > div {
+    border-top-color: #667eea !important;
+    border-right-color: #764ba2 !important;
+}
+
+/* ============================================================================
+   SCROLLBAR
+   ============================================================================ */
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+@media screen and (max-width: 768px) {
+    h1 {
+        font-size: 1.8rem;
+    }
+    
+    .prediction-card h1 {
+        font-size: 2.5rem;
+    }
+    
+    .metric-card {
+        margin-bottom: 1rem;
+    }
+    
+    .stButton > button {
+        padding: 0.6rem 1.5rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* ============================================================================
+   ANIMATIONS
+   ============================================================================ */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.metric-card, .prediction-card, .stAlert {
+    animation: fadeIn 0.5s ease;
+}
+
+/* ============================================================================
+   UTILITY CLASSES
+   ============================================================================ */
+
+.text-center {
+    text-align: center;
+}
+
+.text-muted {
+    color: #7f8c8d;
+}
+
+.mt-1 { margin-top: 1rem; }
+.mt-2 { margin-top: 2rem; }
+.mb-1 { margin-bottom: 1rem; }
+.mb-2 { margin-bottom: 2rem; }
+
+.shadow-sm {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.shadow-md {
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-lg {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.rounded {
+    border-radius: 10px;
+}
+
+.rounded-lg {
+    border-radius: 15px;
+}
+
+.gradient-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.gradient-text {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
