@@ -50,11 +50,11 @@ load_css('style.css')
 def load_model():
     """Load model XGBoost dan metadata akurasi"""
     try:
-        with open('model_xgboost_optimized.pkl', 'rb') as f:
+        with open('xgboost_bo2.pkl', 'rb') as f:
             model = pickle.load(f)
         return model
     except FileNotFoundError:
-        st.error("❌ File model tidak ditemukan! Pastikan 'model_xgboost_optimized.pkl' ada di folder yang sama.")
+        st.error("❌ File model tidak ditemukan! Pastikan 'xgboost_bo2.pkl' ada di folder yang sama.")
         return None
 
 # Metadata akurasi dari pengujian model (dari Bab 4)
@@ -532,3 +532,4 @@ st.markdown(f"""
     <p style='font-size: 12px;'>Dina Wachidah Septiana | NIM: 4611422027</p>
 </div>
 """, unsafe_allow_html=True)
+
