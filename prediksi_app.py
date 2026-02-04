@@ -50,7 +50,7 @@ load_css('style.css')
 def load_model():
     """Load model XGBoost dan metadata akurasi"""
     try:
-        with open('xgb_bo2.pkl', 'rb') as f:
+        with open('model_xgboost_optimized.pkl', 'rb') as f:
             model = pickle.load(f)
         return model
     except FileNotFoundError:
