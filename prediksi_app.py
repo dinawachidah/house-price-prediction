@@ -593,23 +593,27 @@ elif menu == "📈 Evaluasi Model":
     # KESIMPULAN
     # ===============================
     st.markdown(f"""
-    <div style='background:linear-gradient(135deg,#4caf50,#43a047);
-                padding:2rem;border-radius:15px;color:white;'>
+    <div class='card'>
+        <h3>✅ Kesimpulan Evaluasi</h3>
     
-        <div style='margin:1.5rem 0;'>
-            <ul style='font-size:1.05rem;line-height:1.8;'>
-                <li>✅ <strong>R² Score = {R2_TEST:.4f}</strong> (Kategori <strong>Baik – Sangat Baik</strong>)</li>
-                <li>✅ <strong>Akurasi Tinggi</strong> → Model menjelaskan <strong>{R2_TEST*100:.2f}%</strong> variasi harga</li>
-                <li>✅ <strong>Generalisasi Baik</strong> → Gap train–test sebesar <strong>{gap:.4f}</strong> (rendah)</li>
-                <li>✅ <strong>Reliable</strong> → Rata-rata kesalahan (MAE) <strong>Rp {MAE_TEST/1e9:.2f} Miliar</strong></li>
-            </ul>
-        </div>
+        <div style='background:linear-gradient(135deg,#4caf50,#43a047);
+                    padding:2rem;border-radius:15px;color:white;'>
     
-        <div style='margin-top:1.5rem;padding-top:1rem;
-                    border-top:2px solid rgba(255,255,255,0.3);
-                    font-weight:600;font-size:1.1rem;'>
-            Model ini layak digunakan sebagai sistem pendukung keputusan
-            untuk estimasi harga properti di kawasan Tebet.
+            <div style='margin:1.5rem 0;'>
+                <ul style='font-size:1.05rem;line-height:1.8;'>
+                    <li>✅ <strong>R² Score = {R2_TEST:.4f}</strong> (Kategori <strong>Baik – Sangat Baik</strong>)</li>
+                    <li>✅ <strong>Akurasi Tinggi</strong> → Model menjelaskan <strong>{R2_TEST*100:.2f}%</strong> variasi harga</li>
+                    <li>✅ <strong>Generalisasi Baik</strong> → Gap train–test sebesar <strong>{gap:.4f}</strong> (rendah)</li>
+                    <li>✅ <strong>Reliable</strong> → Rata-rata kesalahan (MAE) <strong>Rp {MAE_TEST/1e9:.2f} Miliar</strong></li>
+                </ul>
+            </div>
+    
+            <div style='margin-top:1.5rem;padding-top:1rem;
+                        border-top:2px solid rgba(255,255,255,0.3);
+                        font-weight:600;font-size:1.1rem;'>
+                Model ini layak digunakan sebagai sistem pendukung keputusan
+                untuk estimasi harga properti di kawasan Tebet.
+            </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -812,5 +816,6 @@ st.markdown("""
     </p>
 </div>
 """, unsafe_allow_html=True)
+
 
 
