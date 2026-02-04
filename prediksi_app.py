@@ -1,7 +1,7 @@
 # ===============================
 # STREAMLIT APP — PREDIKSI HARGA RUMAH
 # XGBoost + Bayesian Optimization
-# Enhanced UI Version
+# Enhanced UI Version + Model Evaluation
 # ===============================
 
 import streamlit as st
@@ -228,6 +228,42 @@ st.markdown("""
         opacity: 0.9;
     }
     
+    /* Evaluation Metric Box */
+    .eval-metric-box {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 15px;
+        color: white;
+        text-align: center;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        margin-bottom: 1.5rem;
+        transition: transform 0.3s ease;
+    }
+    
+    .eval-metric-box:hover {
+        transform: translateY(-5px);
+    }
+    
+    .eval-metric-value {
+        font-size: 3rem;
+        font-weight: 700;
+        margin: 1rem 0;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .eval-metric-label {
+        font-size: 1.1rem;
+        font-weight: 500;
+        opacity: 0.95;
+        margin-bottom: 0.5rem;
+    }
+    
+    .eval-metric-desc {
+        font-size: 0.9rem;
+        opacity: 0.85;
+        margin-top: 0.5rem;
+    }
+    
     /* Animations */
     @keyframes fadeIn {
         from { opacity: 0; }
@@ -272,116 +308,81 @@ st.markdown("""
             transform: scale(1);
         }
     }
-    
-    /* Caption Styles */
-    .caption {
-        color: rgba(255, 255, 255, 0.8);
-        font-size: 0.9rem;
-        text-align: center;
-        margin-top: 1rem;
-    }
-    
-    /* Divider */
-    hr {
-        border: none;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-        margin: 2rem 0;
-    }
 </style>
 """, unsafe_allow_html=True)
 
 # ===============================
-# LOAD MODEL
+# LOAD MODEL & DATA
 # ===============================
 @st.cache_resource
 def load_model():
-    return joblib.load("xgb_bo2.pkl")
+    return joblib.load("model_xgb_bo.pkl")
 
-model = load_model()
-
-# ===============================
-# LOAD DATA
-# ===============================
 @st.cache_data
 def load_data():
-    df = pd.read_csv("DATA-RUMAH.csv")
-    df = df.drop(columns=["NO", "NAMA RUMAH"])
+    df = pd.read_csv("rumah_tebet.csv")
+    df.drop(["NO", "NAMA RUMAH"], axis=1, inplace=True, errors="ignore")
     df["RASIO_LB_LT"] = df["LB"] / (df["LT"] + 1)
     return df
 
+model = load_model()
 df = load_data()
 feature_cols = ["LT", "LB", "KT", "KM", "GRS", "RASIO_LB_LT"]
 
 # ===============================
-# SIDEBAR
+# SIDEBAR NAVIGATION
 # ===============================
 with st.sidebar:
-    st.markdown("<h2 style='text-align: center; color: white;'>📊 Menu Navigasi</h2>", unsafe_allow_html=True)
-    st.markdown("<hr style='background: rgba(255,255,255,0.3);'>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center; color: white; margin-top: 0;'>🏠 Navigation</h2>", unsafe_allow_html=True)
     
     menu = st.radio(
-        "Pilih Halaman",
-        [
-            "🏠 Prediksi Harga",
-            "📊 Analisis Data",
-            "⭐ Feature Importance",
-            "🧠 SHAP Analysis"
-        ],
+        "",
+        ["🏡 Prediksi Harga", "📈 Evaluasi Model", "📊 Analisis Data", "⭐ Feature Importance", "🧠 SHAP Analysis"],
         label_visibility="collapsed"
     )
     
-    st.markdown("<hr style='background: rgba(255,255,255,0.3);'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border-color: rgba(255,255,255,0.3);'>", unsafe_allow_html=True)
     
-    # Statistics
-    st.markdown(f"""
+    st.markdown("""
     <div style='background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px; margin-top: 1rem;'>
-        <div style='text-align: center; color: white;'>
-            <div style='font-size: 1.5rem; font-weight: 700;'>{len(df)}</div>
-            <div style='font-size: 0.85rem; opacity: 0.8;'>Total Data</div>
-        </div>
+        <h4 style='color: white; margin-top: 0;'>📚 Info Model</h4>
+        <p style='color: white; font-size: 0.9rem; margin: 0.5rem 0;'>
+            <strong>Algoritma:</strong> XGBoost Regression
+        </p>
+        <p style='color: white; font-size: 0.9rem; margin: 0.5rem 0;'>
+            <strong>Optimasi:</strong> Bayesian Optimization (Optuna-TPE)
+        </p>
+        <p style='color: white; font-size: 0.9rem; margin: 0.5rem 0;'>
+            <strong>Dataset:</strong> Tebet, Jakarta Selatan
+        </p>
     </div>
     """, unsafe_allow_html=True)
-    
-    st.markdown("<div class='caption'>Powered by XGBoost + Bayesian Optimization</div>", unsafe_allow_html=True)
 
 # ===============================
-# 🏠 PREDIKSI HARGA
+# 🏡 PREDIKSI HARGA
 # ===============================
-if menu == "🏠 Prediksi Harga":
-    st.markdown("<h1>🏠 Prediksi Harga Rumah</h1>", unsafe_allow_html=True)
-    st.markdown("<div class='subtitle'>Sistem Prediksi Harga Rumah di Wilayah Tebet, Jakarta Selatan</div>", unsafe_allow_html=True)
-    
-    # Info Box
-    st.markdown("""
-    <div class='info-box'>
-        <h3 style='margin-top: 0;'>ℹ️ Cara Penggunaan</h3>
-        <p style='margin-bottom: 0;'>Masukkan spesifikasi rumah pada form di bawah ini, kemudian klik tombol <strong>Prediksi Harga</strong> untuk mendapatkan estimasi harga rumah.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Input Form
+if menu == "🏡 Prediksi Harga":
+    st.markdown("<h1>🏡 Prediksi Harga Rumah</h1>", unsafe_allow_html=True)
+    st.markdown("<div class='subtitle'>Masukkan spesifikasi rumah untuk mendapatkan estimasi harga</div>", unsafe_allow_html=True)
+
     st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.markdown("<h3>📝 Masukkan Spesifikasi Rumah</h3>", unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns(3)
-    
+
     with col1:
-        LT = st.number_input("🏞️ Luas Tanah (m²)", 30, 500, 100, help="Masukkan luas tanah dalam meter persegi")
-        KT = st.number_input("🛏️ Kamar Tidur", 1, 10, 3, help="Jumlah kamar tidur")
+        LT = st.number_input("🌍 Luas Tanah (m²)", min_value=10, max_value=1000, value=150, step=10)
+        KT = st.number_input("🛏️ Kamar Tidur", min_value=1, max_value=10, value=3, step=1)
 
     with col2:
-        LB = st.number_input("🏠 Luas Bangunan (m²)", 30, 500, 120, help="Masukkan luas bangunan dalam meter persegi")
-        KM = st.number_input("🚿 Kamar Mandi", 1, 10, 2, help="Jumlah kamar mandi")
+        LB = st.number_input("🏗️ Luas Bangunan (m²)", min_value=10, max_value=1000, value=120, step=10)
+        KM = st.number_input("🚿 Kamar Mandi", min_value=1, max_value=10, value=2, step=1)
 
     with col3:
-        GRS = st.number_input("🚗 Jumlah Mobil (Kapasitas Garasi)", 0, 3, 1, help="Jumlah mobil yang dapat ditampung")
-
-    st.markdown("</div>", unsafe_allow_html=True)
+        GRS = st.number_input("🚗 Garasi (Mobil)", min_value=0, max_value=5, value=1, step=1)
     
-    # Calculate ratio
-    rasio = LB / (LT + 1)
+    st.markdown("</div>", unsafe_allow_html=True)
 
+    rasio = LB / (LT + 1)
     input_df = pd.DataFrame([{
         "LT": LT,
         "LB": LB,
@@ -433,6 +434,220 @@ if menu == "🏠 Prediksi Harga":
                     <div class='stats-label'>Total Ruangan</div>
                 </div>
                 """, unsafe_allow_html=True)
+
+# ===============================
+# 📈 EVALUASI MODEL (MENU BARU)
+# ===============================
+elif menu == "📈 Evaluasi Model":
+    st.markdown("<h1>📈 Evaluasi Performa Model</h1>", unsafe_allow_html=True)
+    st.markdown("<div class='subtitle'>Hasil Pengujian Model XGBoost + Bayesian Optimization</div>", unsafe_allow_html=True)
+    
+    # ========================================================================
+    # GANTI NILAI DI BAWAH INI DENGAN HASIL DARI NOTEBOOK ANDA
+    # ========================================================================
+    RMSE_TEST = 2973281782   # Rp 2.97 Miliar
+    MAE_TEST = 1702461330    # Rp 1.70 Miliar
+    R2_TEST = 0.8106         # R² = 0.8106
+    
+    # Metrik tambahan (opsional, sesuaikan dengan hasil Anda)
+    RMSE_TRAIN = 2477063434  # RMSE pada data training
+    R2_TRAIN = 0.8897        # R² pada data training
+    # ========================================================================
+    
+    # Info Section
+    st.markdown("""
+    <div class='info-box'>
+        <h3 style='margin-top: 0;'>📊 Tentang Evaluasi Model</h3>
+        <p style='margin-bottom: 0;'>
+            Model telah dievaluasi menggunakan data test (202 sampel) yang tidak pernah 
+            "dilihat" selama proses pelatihan. Metrik evaluasi di bawah menunjukkan 
+            tingkat akurasi dan kemampuan generalisasi model terhadap data baru.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Main Metrics
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown(f"""
+        <div class='eval-metric-box'>
+            <div class='eval-metric-label'>📏 RMSE (Test)</div>
+            <div class='eval-metric-value'>Rp {RMSE_TEST/1e9:.2f}M</div>
+            <div class='eval-metric-desc'>Root Mean Squared Error</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown(f"""
+        <div class='eval-metric-box'>
+            <div class='eval-metric-label'>📐 MAE (Test)</div>
+            <div class='eval-metric-value'>Rp {MAE_TEST/1e9:.2f}M</div>
+            <div class='eval-metric-desc'>Mean Absolute Error</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown(f"""
+        <div class='eval-metric-box' style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);'>
+            <div class='eval-metric-label'>🎯 R² Score (Test)</div>
+            <div class='eval-metric-value'>{R2_TEST:.4f}</div>
+            <div class='eval-metric-desc'>{R2_TEST*100:.2f}% variance explained</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Detailed Explanation
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.markdown("<h3>📖 Interpretasi R² Score</h3>", unsafe_allow_html=True)
+    
+    st.markdown(f"""
+    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                padding: 2rem; border-radius: 15px; color: white; margin-bottom: 1rem;'>
+        <h2 style='margin-top: 0; color: white; text-align: center;'>
+            R² = {R2_TEST:.4f}
+        </h2>
+        <p style='text-align: center; font-size: 1.2rem; margin: 0;'>
+            Model dapat menjelaskan <strong>{R2_TEST*100:.2f}%</strong> variasi harga rumah
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col_a, col_b = st.columns(2)
+    
+    with col_a:
+        st.markdown(f"""
+        <div style='background: #e8f5e9; padding: 1.5rem; border-radius: 10px; 
+                    border-left: 5px solid #4caf50; margin-bottom: 1rem;'>
+            <h4 style='color: #2e7d32; margin-top: 0;'>✅ Yang Dapat Dijelaskan Model</h4>
+            <p style='color: #1b5e20; margin: 0; font-size: 1.1rem;'>
+                <strong>{R2_TEST*100:.2f}%</strong> dari variasi harga rumah dapat diprediksi 
+                berdasarkan fitur:
+            </p>
+            <ul style='color: #1b5e20; margin-top: 0.5rem;'>
+                <li>Luas Tanah (LT)</li>
+                <li>Luas Bangunan (LB)</li>
+                <li>Jumlah Kamar Tidur (KT)</li>
+                <li>Jumlah Kamar Mandi (KM)</li>
+                <li>Kapasitas Garasi (GRS)</li>
+                <li>Rasio LB/LT</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col_b:
+        st.markdown(f"""
+        <div style='background: #fff3e0; padding: 1.5rem; border-radius: 10px; 
+                    border-left: 5px solid #ff9800; margin-bottom: 1rem;'>
+            <h4 style='color: #e65100; margin-top: 0;'>⚪ Faktor Lain ({(1-R2_TEST)*100:.2f}%)</h4>
+            <p style='color: #bf360c; margin: 0; font-size: 1.1rem;'>
+                <strong>{(1-R2_TEST)*100:.2f}%</strong> sisanya dipengaruhi oleh 
+                faktor di luar model:
+            </p>
+            <ul style='color: #bf360c; margin-top: 0.5rem;'>
+                <li>Lokasi detail (jarak ke fasilitas)</li>
+                <li>Kualitas finishing bangunan</li>
+                <li>Tahun pembangunan</li>
+                <li>View dan orientasi</li>
+                <li>Kondisi pasar properti</li>
+                <li>Faktor psikologis pembeli</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("</div>", unsafe_allow_html=True)
+    
+    # Kategori R²
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.markdown("<h3>🏆 Kategori Performa Model</h3>", unsafe_allow_html=True)
+    
+    categories = [
+        ("R² < 0.50", "Buruk", "#f44336", "❌"),
+        ("R² 0.50-0.70", "Cukup Baik", "#ff9800", "⚠️"),
+        ("R² 0.70-0.90", "Baik - Sangat Baik", "#4caf50", "✅"),
+        ("R² > 0.90", "Excellent", "#2196f3", "⭐"),
+    ]
+    
+    for range_val, label, color, icon in categories:
+        is_current = (R2_TEST >= 0.70 and R2_TEST <= 0.90 and "0.70-0.90" in range_val)
+        
+        st.markdown(f"""
+        <div style='background: {"linear-gradient(135deg, " + color + " 0%, " + color + "dd 100%)" if is_current else "#f5f5f5"}; 
+                    padding: 1rem; border-radius: 10px; margin-bottom: 0.5rem;
+                    border: {"3px solid " + color if is_current else "1px solid #e0e0e0"};'>
+            <p style='margin: 0; color: {"white" if is_current else "#333"}; font-weight: {"bold" if is_current else "normal"};'>
+                {icon} <strong>{range_val}</strong>: {label}
+                {"<span style='float: right; font-size: 1.2rem;'>👈 Model Anda</span>" if is_current else ""}
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("</div>", unsafe_allow_html=True)
+    
+    # Performance Comparison
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.markdown("<h3>📊 Perbandingan Train vs Test</h3>", unsafe_allow_html=True)
+    
+    col_comp1, col_comp2, col_comp3 = st.columns(3)
+    
+    with col_comp1:
+        st.markdown(f"""
+        <div style='text-align: center; padding: 1.5rem; background: #e3f2fd; border-radius: 10px;'>
+            <p style='margin: 0; color: #1565c0; font-weight: bold;'>R² Train</p>
+            <h2 style='margin: 0.5rem 0; color: #0d47a1;'>{R2_TRAIN:.4f}</h2>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col_comp2:
+        st.markdown(f"""
+        <div style='text-align: center; padding: 1.5rem; background: #f3e5f5; border-radius: 10px;'>
+            <p style='margin: 0; color: #7b1fa2; font-weight: bold;'>R² Test</p>
+            <h2 style='margin: 0.5rem 0; color: #4a148c;'>{R2_TEST:.4f}</h2>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col_comp3:
+        gap = R2_TRAIN - R2_TEST
+        st.markdown(f"""
+        <div style='text-align: center; padding: 1.5rem; background: #{"e8f5e9" if gap < 0.1 else "#fff3e0"}; border-radius: 10px;'>
+            <p style='margin: 0; color: #{"2e7d32" if gap < 0.1 else "#e65100"}; font-weight: bold;'>Gap (Overfitting)</p>
+            <h2 style='margin: 0.5rem 0; color: #{"1b5e20" if gap < 0.1 else "#bf360c"};'>{gap:.4f}</h2>
+            <p style='margin: 0; font-size: 0.9rem; color: #{"2e7d32" if gap < 0.1 else "#e65100"};'>
+                {"✅ Rendah (Baik)" if gap < 0.1 else "⚠️ Sedang"}
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.info(f"""
+    **📌 Analisis Overfitting:**
+    
+    Gap antara R² Train ({R2_TRAIN:.4f}) dan R² Test ({R2_TEST:.4f}) adalah **{gap:.4f} ({gap*100:.2f}%)**. 
+    
+    {'✅ Model memiliki generalisasi yang sangat baik dengan gap yang rendah.' if gap < 0.1 else '⚠️ Model memiliki sedikit overfitting, namun masih dalam batas wajar untuk model regresi.'}
+    """)
+    
+    st.markdown("</div>", unsafe_allow_html=True)
+    
+    # Kesimpulan
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.markdown("<h3>✅ Kesimpulan Evaluasi</h3>", unsafe_allow_html=True)
+    
+    st.success(f"""
+    **Model XGBoost dengan Bayesian Optimization ini memiliki performa yang sangat baik untuk prediksi harga rumah di Tebet:**
+    
+    ✅ **R² Score = {R2_TEST:.4f}** → Termasuk kategori "**Baik - Sangat Baik**"
+    
+    ✅ **Akurasi Tinggi** → Model dapat menjelaskan **{R2_TEST*100:.2f}%** variasi harga
+    
+    ✅ **Generalisasi Baik** → Gap train-test hanya **{gap:.4f}** (rendah)
+    
+    ✅ **Reliable** → Rata-rata kesalahan (MAE) sebesar Rp {MAE_TEST/1e9:.2f} Miliar
+    
+    **Model ini layak digunakan sebagai sistem pendukung keputusan untuk estimasi harga properti di kawasan Tebet.**
+    """)
+    
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # ===============================
 # 📊 ANALISIS DATA
