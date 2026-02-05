@@ -309,7 +309,7 @@ def load_model():
 def load_data():
     """Load dataset for EDA"""
     try:
-        df = pd.read_excel("DAFTAR-HARGA-RUMAH.xlsx")
+        df = pd.read_csv("DATA-RUMAH.csv")
         return df
     except FileNotFoundError:
         st.warning("⚠️ File dataset tidak ditemukan. Menu Analisis Data tidak tersedia.")
@@ -1011,3 +1011,4 @@ st.markdown("""
     </p>
 </div>
 """, unsafe_allow_html=True)
+
