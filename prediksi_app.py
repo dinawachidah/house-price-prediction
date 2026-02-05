@@ -309,7 +309,7 @@ def load_model():
 def load_data():
     """Load dataset for EDA"""
     try:
-        df = pd.read_csv("DATA-RUMAH.csv")
+        df = pd.read_excel("DAFTAR-HARGA-RUMAH.xlsx")
         return df
     except FileNotFoundError:
         st.warning("⚠️ File dataset tidak ditemukan. Menu Analisis Data tidak tersedia.")
@@ -519,47 +519,36 @@ if menu == "🏠 Prediksi Harga":
             
             st.markdown("<br>", unsafe_allow_html=True)
             
-            # 3. MODEL RELIABILITY
-            st.markdown(f"""
-            <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        padding: 2rem; border-radius: 15px; color: white;
-                        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);'>
-                <h4 style='color: white; margin-top: 0; font-size: 1.2rem;'>
-                    📊 Indikator Reliabilitas Model
-                </h4>
-                <p style='margin: 1rem 0 0.5rem 0; opacity: 0.95;'>
-                    Prediksi ini dibuat oleh model XGBoost yang telah dievaluasi pada 202 data test:
-                </p>
-                
-                <div style='margin: 1.5rem 0;'>
-                    <div style='display: flex; justify-content: space-between; 
-                                padding: 0.8rem; background: rgba(255,255,255,0.1); 
-                                border-radius: 8px; margin-bottom: 0.5rem;'>
-                        <span>R² Score (Koefisien Determinasi)</span>
-                        <strong>{R2_TEST:.4f} ({R2_TEST*100:.2f}%)</strong>
-                    </div>
-                    <div style='display: flex; justify-content: space-between; 
-                                padding: 0.8rem; background: rgba(255,255,255,0.1); 
-                                border-radius: 8px; margin-bottom: 0.5rem;'>
-                        <span>RMSE (Root Mean Squared Error)</span>
-                        <strong>Rp {RMSE_TEST/1e9:.2f} Miliar</strong>
-                    </div>
-                    <div style='display: flex; justify-content: space-between; 
-                                padding: 0.8rem; background: rgba(255,255,255,0.1); 
-                                border-radius: 8px;'>
-                        <span>MAE (Mean Absolute Error)</span>
-                        <strong>Rp {MAE_TEST/1e9:.2f} Miliar</strong>
-                    </div>
-                </div>
-                
-                <p style='margin: 1rem 0 0 0; font-size: 0.9rem; opacity: 0.9; 
-                          border-top: 1px solid rgba(255,255,255,0.3); padding-top: 1rem;'>
-                    ✅ Model dapat menjelaskan <strong>{R2_TEST*100:.2f}%</strong> variasi harga rumah
-                    <br>
-                    ✅ Kategori: <strong>Baik - Sangat Baik</strong> (R² = 0.70 - 0.90)
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
+            # 3. MODEL RELIABILITY - GUNAKAN NATIVE STREAMLIT
+            st.markdown("#### 📊 Indikator Reliabilitas Model")
+            st.write("Prediksi ini dibuat oleh model XGBoost yang telah dievaluasi pada 202 data test:")
+            
+            # Metrics in columns
+            col_m1, col_m2, col_m3 = st.columns(3)
+            
+            with col_m1:
+                st.metric(
+                    label="R² Score",
+                    value=f"{R2_TEST:.4f}",
+                    delta=f"{R2_TEST*100:.2f}%"
+                )
+            
+            with col_m2:
+                st.metric(
+                    label="RMSE",
+                    value=f"Rp {RMSE_TEST/1e9:.2f}M"
+                )
+            
+            with col_m3:
+                st.metric(
+                    label="MAE",
+                    value=f"Rp {MAE_TEST/1e9:.2f}M"
+                )
+            
+            st.success(f"""
+            ✅ Model dapat menjelaskan **{R2_TEST*100:.2f}%** variasi harga rumah  
+            ✅ Kategori: **Baik - Sangat Baik** (R² = 0.70 - 0.90)
+            """)
             
             st.markdown("</div>", unsafe_allow_html=True)
             
@@ -654,43 +643,42 @@ elif menu == "📈 Evaluasi Model":
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Kategori R² - PERBAIKAN
+    # Kategori R² - GUNAKAN NATIVE STREAMLIT
     st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.markdown("<h3>🏆 Kategori Performa Model</h3>", unsafe_allow_html=True)
+    st.markdown("### 🏆 Kategori Performa Model")
     
-    categories = [
-        ("R² < 0.50", "Buruk", "#f44336", "❌"),
-        ("R² 0.50-0.70", "Cukup Baik", "#ff9800", "⚠️"),
-        ("R² 0.70-0.90", "Baik - Sangat Baik", "#4caf50", "✅"),
-        ("R² > 0.90", "Excellent", "#2196f3", "⭐"),
-    ]
+    # Tentukan kategori model saat ini
+    if R2_TEST >= 0.90:
+        current_category = "Excellent"
+        current_range = "R² > 0.90"
+    elif R2_TEST >= 0.70:
+        current_category = "Baik - Sangat Baik"
+        current_range = "R² 0.70-0.90"
+    elif R2_TEST >= 0.50:
+        current_category = "Cukup Baik"
+        current_range = "R² 0.50-0.70"
+    else:
+        current_category = "Buruk"
+        current_range = "R² < 0.50"
     
-    for range_val, label, color, icon in categories:
-        # PERBAIKAN: Logika deteksi yang benar untuk SEMUA kategori
-        if "< 0.50" in range_val:
-            is_current = R2_TEST < 0.50
-        elif "0.50-0.70" in range_val:
-            is_current = 0.50 <= R2_TEST < 0.70
-        elif "0.70-0.90" in range_val:
-            is_current = 0.70 <= R2_TEST < 0.90
-        else:  # > 0.90
-            is_current = R2_TEST >= 0.90
-        
-        bg_style = f"linear-gradient(135deg, {color} 0%, {color}dd 100%)" if is_current else "#f5f5f5"
-        text_color = "white" if is_current else "#333"
-        border = f"3px solid {color}" if is_current else "1px solid #e0e0e0"
-        font_weight = "bold" if is_current else "normal"
-        
-        st.markdown(f"""
-        <div style='background: {bg_style}; 
-                    padding: 1rem; border-radius: 10px; margin-bottom: 0.5rem;
-                    border: {border};'>
-            <p style='margin: 0; color: {text_color}; font-weight: {font_weight};'>
-                {icon} <strong>{range_val}</strong>: {label}
-                {"<span style='float: right; font-size: 1.2rem;'>👉 Model Anda</span>" if is_current else ""}
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
+    # Tampilkan kategori
+    st.info(f"**Model Anda**: {current_range} → **{current_category}**")
+    
+    # Tabel kategori
+    st.write("**Standar Interpretasi R² Score:**")
+    
+    categories_df = pd.DataFrame({
+        'Range': ['R² > 0.90', 'R² 0.70-0.90', 'R² 0.50-0.70', 'R² < 0.50'],
+        'Kategori': ['⭐ Excellent', '✅ Baik - Sangat Baik', '⚠️ Cukup Baik', '❌ Buruk'],
+        'Status': [
+            '👉 Model Anda' if R2_TEST >= 0.90 else '',
+            '👉 Model Anda' if 0.70 <= R2_TEST < 0.90 else '',
+            '👉 Model Anda' if 0.50 <= R2_TEST < 0.70 else '',
+            '👉 Model Anda' if R2_TEST < 0.50 else ''
+        ]
+    })
+    
+    st.dataframe(categories_df, use_container_width=True, hide_index=True)
     
     st.markdown("</div>", unsafe_allow_html=True)
     
@@ -738,42 +726,25 @@ elif menu == "📈 Evaluasi Model":
     
     st.markdown("</div>", unsafe_allow_html=True)
     
-    # Kesimpulan
+    # Kesimpulan - GUNAKAN NATIVE STREAMLIT
     st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.markdown("<h3>✅ Kesimpulan Evaluasi</h3>", unsafe_allow_html=True)
+    st.markdown("### ✅ Kesimpulan Evaluasi")
     
-    st.markdown(f"""
-    <div style='background: linear-gradient(135deg, #4caf50 0%, #45a049 100%); 
-                padding: 2rem; border-radius: 15px; color: white; 
-                box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);'>
-        <h4 style='color: white; margin-top: 0; font-size: 1.3rem;'>
-            Model XGBoost dengan Bayesian Optimization ini memiliki performa yang sangat baik untuk prediksi harga rumah di Tebet:
-        </h4>
-        
-        <div style='margin: 1.5rem 0;'>
-            <p style='color: white; font-size: 1.05rem; margin: 0.8rem 0; line-height: 1.6;'>
-                ✅ <strong>R² Score = {R2_TEST:.4f}</strong> → Termasuk kategori "<strong>Baik - Sangat Baik</strong>"
-            </p>
-            
-            <p style='color: white; font-size: 1.05rem; margin: 0.8rem 0; line-height: 1.6;'>
-                ✅ <strong>Akurasi Tinggi</strong> → Model dapat menjelaskan <strong>{R2_TEST*100:.2f}%</strong> variasi harga
-            </p>
-            
-            <p style='color: white; font-size: 1.05rem; margin: 0.8rem 0; line-height: 1.6;'>
-                ✅ <strong>Generalisasi Baik</strong> → Gap train-test hanya <strong>{gap:.4f}</strong> (rendah)
-            </p>
-            
-            <p style='color: white; font-size: 1.05rem; margin: 0.8rem 0; line-height: 1.6;'>
-                ✅ <strong>Reliable</strong> → Rata-rata kesalahan (MAE) sebesar <strong>Rp {MAE_TEST/1e9:.2f} Miliar</strong>
-            </p>
-        </div>
-        
-        <p style='color: white; font-size: 1.1rem; margin: 1.5rem 0 0 0; font-weight: 600; 
-                  border-top: 2px solid rgba(255,255,255,0.3); padding-top: 1rem;'>
-            Model ini layak digunakan sebagai sistem pendukung keputusan untuk estimasi harga properti di kawasan Tebet.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.success(f"""
+    **Model XGBoost dengan Bayesian Optimization memiliki performa yang sangat baik:**
+    
+    ✅ **R² Score = {R2_TEST:.4f}** → Termasuk kategori "**Baik - Sangat Baik**"
+    
+    ✅ **Akurasi Tinggi** → Model dapat menjelaskan **{R2_TEST*100:.2f}%** variasi harga
+    
+    ✅ **Generalisasi Baik** → Gap train-test hanya **{gap:.4f}** (rendah)
+    
+    ✅ **Reliable** → Rata-rata kesalahan (MAE) sebesar **Rp {MAE_TEST/1e9:.2f} Miliar**
+    
+    ---
+    
+    **Model ini layak digunakan sebagai sistem pendukung keputusan untuk estimasi harga properti di kawasan Tebet.**
+    """)
     
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -956,9 +927,43 @@ elif menu == "🧠 SHAP Analysis":
             n_samples = min(100, len(df_sample))
             X_sample = df_sample[required_cols].sample(n=n_samples, random_state=42)
             
-            # Hitung SHAP values
-            explainer = shap.TreeExplainer(model)
-            shap_values = explainer.shap_values(X_sample)
+            # ===== FIX SHAP: Cek apakah model adalah Pipeline atau XGBoost langsung =====
+            try:
+                # Cek apakah model adalah pipeline (punya named_steps)
+                if hasattr(model, 'named_steps'):
+                    # Model adalah Pipeline, extract XGBoost-nya
+                    st.info("🔍 Detected Pipeline model, extracting XGBoost estimator...")
+                    
+                    # Cari XGBoost di pipeline
+                    if 'xgb' in model.named_steps:
+                        xgb_model = model.named_steps['xgb']
+                    elif 'regressor' in model.named_steps:
+                        xgb_model = model.named_steps['regressor']
+                    elif 'estimator' in model.named_steps:
+                        xgb_model = model.named_steps['estimator']
+                    else:
+                        # Ambil step terakhir (biasanya estimator)
+                        xgb_model = list(model.named_steps.values())[-1]
+                    
+                    st.success(f"✅ Extracted: {type(xgb_model).__name__}")
+                else:
+                    # Model sudah XGBoost langsung
+                    xgb_model = model
+                
+                # Hitung SHAP values
+                explainer = shap.TreeExplainer(xgb_model)
+                shap_values = explainer.shap_values(X_sample)
+                
+            except Exception as e:
+                st.error(f"❌ Error saat membuat SHAP explainer: {str(e)}")
+                st.info(f"""
+                **Debug Info:**
+                - Model type: {type(model)}
+                - Model attributes: {dir(model)[:10]}...
+                
+                Model Anda mungkin bukan XGBoost atau Pipeline yang valid.
+                """)
+                st.stop()
 
         # SHAP Feature Importance
         st.markdown("<div class='card'>", unsafe_allow_html=True)
@@ -1006,4 +1011,3 @@ st.markdown("""
     </p>
 </div>
 """, unsafe_allow_html=True)
-
