@@ -309,7 +309,7 @@ def load_model():
 def load_data():
     """Load dataset for EDA"""
     try:
-        df = pd.read_csv("DATA-RUMAH.csv")
+        df = pd.read_excel("DAFTAR-HARGA-RUMAH.xlsx")
         return df
     except FileNotFoundError:
         st.warning("⚠️ File dataset tidak ditemukan. Menu Analisis Data tidak tersedia.")
@@ -363,8 +363,8 @@ def calculate_prediction_interval(y_pred, rmse, confidence=0.95):
     # Margin of error
     margin = z_score * rmse
     
-    # ===== FIX: Pastikan lower bound tidak negatif =====
-    lower_bound = max(y_pred * 0.5, y_pred - margin)  # Minimal 50% dari prediksi
+    # Interval (minimal 50% dari prediksi, tidak boleh 0)
+    lower_bound = max(y_pred * 0.5, y_pred - margin)
     upper_bound = y_pred + margin
     
     return lower_bound, upper_bound, margin
@@ -609,92 +609,160 @@ if menu == "🏠 Prediksi Harga":
 # ===============================
 elif menu == "📈 Evaluasi Model":
     st.markdown("<h1>📈 Evaluasi Performa Model</h1>", unsafe_allow_html=True)
-    st.markdown("<div class='subtitle'>Analisis mendalam terhadap akurasi dan reliabilitas model XGBoost</div>", unsafe_allow_html=True)
+    st.markdown("<div class='subtitle'>Hasil evaluasi model XGBoost + Bayesian Optimization pada data Test</div>", unsafe_allow_html=True)
     
-    # METRIK UTAMA
-    st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.markdown("<h3>📊 Metrik Evaluasi Model</h3>", unsafe_allow_html=True)
+    # Main Metrics
+    st.markdown("<h3 style='color: white;'>📊 Metrik Evaluasi Utama</h3>", unsafe_allow_html=True)
     
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     
     with col1:
         st.markdown(f"""
         <div class='eval-metric-box'>
-            <div class='stats-label' style='opacity: 0.9;'>R² Score</div>
-            <div class='stats-number'>{R2_TEST:.4f}</div>
-            <p style='margin: 0.5rem 0 0 0; font-size: 0.9rem; opacity: 0.85;'>
-                {R2_TEST*100:.2f}% Variance Explained
-            </p>
+            <div style='font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;'>R² Score</div>
+            <div style='font-size: 2.5rem; font-weight: 700;'>{R2_TEST:.4f}</div>
+            <div style='font-size: 0.85rem; margin-top: 0.5rem; opacity: 0.85;'>Koefisien Determinasi</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
         st.markdown(f"""
         <div class='eval-metric-box'>
-            <div class='stats-label' style='opacity: 0.9;'>RMSE</div>
-            <div class='stats-number'>Rp {RMSE_TEST/1e9:.2f}M</div>
-            <p style='margin: 0.5rem 0 0 0; font-size: 0.9rem; opacity: 0.85;'>
-                Root Mean Squared Error
-            </p>
+            <div style='font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;'>RMSE</div>
+            <div style='font-size: 2rem; font-weight: 700;'>Rp {RMSE_TEST/1e9:.2f}M</div>
+            <div style='font-size: 0.85rem; margin-top: 0.5rem; opacity: 0.85;'>Root Mean Squared Error</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col3:
         st.markdown(f"""
         <div class='eval-metric-box'>
-            <div class='stats-label' style='opacity: 0.9;'>MAE</div>
-            <div class='stats-number'>Rp {MAE_TEST/1e9:.2f}M</div>
-            <p style='margin: 0.5rem 0 0 0; font-size: 0.9rem; opacity: 0.85;'>
-                Mean Absolute Error
+            <div style='font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;'>MAE</div>
+            <div style='font-size: 2rem; font-weight: 700;'>Rp {MAE_TEST/1e9:.2f}M</div>
+            <div style='font-size: 0.85rem; margin-top: 0.5rem; opacity: 0.85;'>Mean Absolute Error</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown(f"""
+        <div class='eval-metric-box'>
+            <div style='font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;'>MSE</div>
+            <div style='font-size: 1.5rem; font-weight: 700;'>{MSE_TEST:.2e}</div>
+            <div style='font-size: 0.85rem; margin-top: 0.5rem; opacity: 0.85;'>Mean Squared Error</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Kategori R² - PERBAIKAN
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.markdown("<h3>🏆 Kategori Performa Model</h3>", unsafe_allow_html=True)
+    
+    categories = [
+        ("R² < 0.50", "Buruk", "#f44336", "❌"),
+        ("R² 0.50-0.70", "Cukup Baik", "#ff9800", "⚠️"),
+        ("R² 0.70-0.90", "Baik - Sangat Baik", "#4caf50", "✅"),
+        ("R² > 0.90", "Excellent", "#2196f3", "⭐"),
+    ]
+    
+    for range_val, label, color, icon in categories:
+        # PERBAIKAN: Logika deteksi yang benar untuk SEMUA kategori
+        if "< 0.50" in range_val:
+            is_current = R2_TEST < 0.50
+        elif "0.50-0.70" in range_val:
+            is_current = 0.50 <= R2_TEST < 0.70
+        elif "0.70-0.90" in range_val:
+            is_current = 0.70 <= R2_TEST < 0.90
+        else:  # > 0.90
+            is_current = R2_TEST >= 0.90
+        
+        bg_style = f"linear-gradient(135deg, {color} 0%, {color}dd 100%)" if is_current else "#f5f5f5"
+        text_color = "white" if is_current else "#333"
+        border = f"3px solid {color}" if is_current else "1px solid #e0e0e0"
+        font_weight = "bold" if is_current else "normal"
+        
+        st.markdown(f"""
+        <div style='background: {bg_style}; 
+                    padding: 1rem; border-radius: 10px; margin-bottom: 0.5rem;
+                    border: {border};'>
+            <p style='margin: 0; color: {text_color}; font-weight: {font_weight};'>
+                {icon} <strong>{range_val}</strong>: {label}
+                {"<span style='float: right; font-size: 1.2rem;'>👉 Model Anda</span>" if is_current else ""}
             </p>
         </div>
         """, unsafe_allow_html=True)
     
     st.markdown("</div>", unsafe_allow_html=True)
     
-    # KATEGORI PERFORMA - FIX: Tutup tag <p> dengan benar
+    # Performance Comparison
     st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.markdown("<h3>🎯 Kategori Performa Model</h3>", unsafe_allow_html=True)
+    st.markdown("<h3>📊 Perbandingan Train vs Test</h3>", unsafe_allow_html=True)
     
-    st.markdown("""
-    <div style='background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-                padding: 1.5rem; border-radius: 15px; color: white; margin: 1rem 0;'>
-        <h4 style='color: white; margin: 0 0 1rem 0;'>📊 Standar Interpretasi R² Score</h4>
-        
-        <div style='margin: 0.8rem 0;'>
-            <p style='margin: 0.3rem 0;'><strong>✅ R² > 0.90:</strong> Sangat Baik (Excellent)</p>
-        </div>
-        <div style='margin: 0.8rem 0;'>
-            <p style='margin: 0.3rem 0;'><strong>✅ R² = 0.70 - 0.90:</strong> Baik - Sangat Baik (Good - Very Good)</p>
-        </div>
-        <div style='margin: 0.8rem 0;'>
-            <p style='margin: 0.3rem 0;'><strong>⚠️ R² = 0.50 - 0.70:</strong> Cukup (Fair)</p>
-        </div>
-        <div style='margin: 0.8rem 0;'>
-            <p style='margin: 0.3rem 0;'><strong>❌ R² &lt; 0.50:</strong> Buruk (Poor)</p>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    col_comp1, col_comp2, col_comp3 = st.columns(3)
     
-    # KESIMPULAN EVALUASI - FIX: Semua tag tertutup dengan benar
+    with col_comp1:
+        st.markdown(f"""
+        <div style='text-align: center; padding: 1.5rem; background: #e3f2fd; border-radius: 10px;'>
+            <p style='margin: 0; color: #1565c0; font-weight: bold;'>R² Train</p>
+            <h2 style='margin: 0.5rem 0; color: #0d47a1;'>{R2_TRAIN:.4f}</h2>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col_comp2:
+        st.markdown(f"""
+        <div style='text-align: center; padding: 1.5rem; background: #f3e5f5; border-radius: 10px;'>
+            <p style='margin: 0; color: #7b1fa2; font-weight: bold;'>R² Test</p>
+            <h2 style='margin: 0.5rem 0; color: #4a148c;'>{R2_TEST:.4f}</h2>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col_comp3:
+        gap = R2_TRAIN - R2_TEST
+        st.markdown(f"""
+        <div style='text-align: center; padding: 1.5rem; background: #{"e8f5e9" if gap < 0.1 else "#fff3e0"}; border-radius: 10px;'>
+            <p style='margin: 0; color: #{"2e7d32" if gap < 0.1 else "#e65100"}; font-weight: bold;'>Gap (Overfitting)</p>
+            <h2 style='margin: 0.5rem 0; color: #{"1b5e20" if gap < 0.1 else "#bf360c"};'>{gap:.4f}</h2>
+            <p style='margin: 0; font-size: 0.9rem; color: #{"2e7d32" if gap < 0.1 else "#e65100"};'>
+                {"✅ Rendah (Baik)" if gap < 0.1 else "⚠️ Sedang"}
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.info(f"""
+    **📌 Analisis Overfitting:**
+    
+    Gap antara R² Train ({R2_TRAIN:.4f}) dan R² Test ({R2_TEST:.4f}) adalah **{gap:.4f} ({gap*100:.2f}%)**. 
+    
+    {'✅ Model memiliki generalisasi yang sangat baik dengan gap yang rendah.' if gap < 0.1 else '⚠️ Model memiliki sedikit overfitting, namun masih dalam batas wajar untuk model regresi.'}
+    """)
+    
+    st.markdown("</div>", unsafe_allow_html=True)
+    
+    # Kesimpulan
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.markdown("<h3>✅ Kesimpulan Evaluasi</h3>", unsafe_allow_html=True)
+    
     st.markdown(f"""
-    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    <div style='background: linear-gradient(135deg, #4caf50 0%, #45a049 100%); 
                 padding: 2rem; border-radius: 15px; color: white; 
-                box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);'>
-        <h4 style='color: white; margin: 0 0 1.5rem 0; font-size: 1.3rem;'>
-            🎉 Kesimpulan Evaluasi Model
+                box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);'>
+        <h4 style='color: white; margin-top: 0; font-size: 1.3rem;'>
+            Model XGBoost dengan Bayesian Optimization ini memiliki performa yang sangat baik untuk prediksi harga rumah di Tebet:
         </h4>
         
         <div style='margin: 1.5rem 0;'>
             <p style='color: white; font-size: 1.05rem; margin: 0.8rem 0; line-height: 1.6;'>
                 ✅ <strong>R² Score = {R2_TEST:.4f}</strong> → Termasuk kategori "<strong>Baik - Sangat Baik</strong>"
             </p>
+            
             <p style='color: white; font-size: 1.05rem; margin: 0.8rem 0; line-height: 1.6;'>
                 ✅ <strong>Akurasi Tinggi</strong> → Model dapat menjelaskan <strong>{R2_TEST*100:.2f}%</strong> variasi harga
             </p>
+            
             <p style='color: white; font-size: 1.05rem; margin: 0.8rem 0; line-height: 1.6;'>
-                ✅ <strong>Generalisasi Baik</strong> → Gap train-test hanya <strong>{abs(R2_TRAIN - R2_TEST):.4f}</strong> (rendah)
+                ✅ <strong>Generalisasi Baik</strong> → Gap train-test hanya <strong>{gap:.4f}</strong> (rendah)
             </p>
+            
             <p style='color: white; font-size: 1.05rem; margin: 0.8rem 0; line-height: 1.6;'>
                 ✅ <strong>Reliable</strong> → Rata-rata kesalahan (MAE) sebesar <strong>Rp {MAE_TEST/1e9:.2f} Miliar</strong>
             </p>
@@ -708,7 +776,7 @@ elif menu == "📈 Evaluasi Model":
     """, unsafe_allow_html=True)
     
     st.markdown("</div>", unsafe_allow_html=True)
-    
+
 # ===============================
 # 📊 ANALISIS DATA
 # ===============================
@@ -848,29 +916,21 @@ elif menu == "⭐ Feature Importance":
 # 🧠 SHAP ANALYSIS
 # ===============================
 elif menu == "🧠 SHAP Analysis":
-    st.markdown("<h1>🧠 SHAP Analysis - Interpretasi Model</h1>", unsafe_allow_html=True)
-    st.markdown("<div class='subtitle'>Memahami bagaimana setiap fitur berkontribusi terhadap prediksi menggunakan SHAP values</div>", unsafe_allow_html=True)
-    
-    if df is not None:
-        st.markdown("<div class='card'>", unsafe_allow_html=True)
-        st.markdown("<h3>📊 Tentang SHAP (SHapley Additive exPlanations)</h3>", unsafe_allow_html=True)
-        
-        st.info("""
-        **SHAP** adalah metode untuk menjelaskan prediksi model machine learning dengan menghitung kontribusi 
-        setiap fitur terhadap prediksi. Nilai SHAP positif berarti fitur tersebut meningkatkan prediksi harga, 
-        sedangkan nilai negatif berarti menurunkan prediksi harga.
-        
-        **Keunggulan SHAP:**
-        - Memberikan penjelasan yang fair dan konsisten
-        - Menunjukkan kontribusi setiap fitur secara individual
-        - Membantu memahami "mengapa" model membuat prediksi tertentu
-        """)
-        
-        st.markdown("</div>", unsafe_allow_html=True)
-        
-        try:
-            # ===== FIX: Pastikan kolom tersedia sebelum sampling =====
-            # Buat sample data dengan feature engineering
+    if df is None:
+        st.error("❌ Dataset tidak tersedia untuk analisis SHAP.")
+    else:
+        st.markdown("<h1>🧠 SHAP — Model Interpretability</h1>", unsafe_allow_html=True)
+        st.markdown("<div class='subtitle'>Analisis Kontribusi Fitur terhadap Prediksi Menggunakan SHAP Values</div>", unsafe_allow_html=True)
+
+        st.markdown("""
+        <div class='info-box'>
+            <h3 style='margin-top: 0;'>💡 Tentang SHAP</h3>
+            <p style='margin-bottom: 0;'>SHAP (SHapley Additive exPlanations) menjelaskan kontribusi setiap fitur terhadap prediksi model. Semakin tinggi nilai SHAP, semakin besar pengaruh fitur tersebut.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        with st.spinner("🔄 Menghitung SHAP values..."):
+            # ===== FIX: Preprocessing dataset dulu =====
             df_sample = df.copy()
             
             # Hapus kolom identifier jika ada
@@ -879,121 +939,58 @@ elif menu == "🧠 SHAP Analysis":
             if 'NAMA RUMAH' in df_sample.columns:
                 df_sample = df_sample.drop(columns=['NAMA RUMAH'])
             
-            # Feature engineering
+            # Feature engineering: buat RASIO_LB_LT
             if 'LT' in df_sample.columns and 'LB' in df_sample.columns:
                 df_sample['RASIO_LB_LT'] = df_sample['LB'] / (df_sample['LT'] + 1)
             
-            # ===== FIX: Gunakan kolom yang benar =====
+            # Validasi kolom yang dibutuhkan
             required_cols = ["LT", "LB", "KT", "KM", "GRS", "RASIO_LB_LT"]
-            
-            # Validasi semua kolom ada
             missing_cols = [col for col in required_cols if col not in df_sample.columns]
+            
             if missing_cols:
-                st.error(f"❌ Kolom berikut tidak ditemukan dalam dataset: {', '.join(missing_cols)}")
+                st.error(f"❌ Kolom tidak ditemukan: {', '.join(missing_cols)}")
+                st.info("Pastikan dataset memiliki kolom: LT, LB, KT, KM, GRS")
                 st.stop()
             
-            # Sample data (100 atau kurang jika data tidak cukup)
+            # Sample data (max 100 atau sesuai ukuran dataset)
             n_samples = min(100, len(df_sample))
             X_sample = df_sample[required_cols].sample(n=n_samples, random_state=42)
             
-            st.markdown("<div class='card'>", unsafe_allow_html=True)
-            st.markdown(f"<h3>📈 SHAP Summary Plot</h3>", unsafe_allow_html=True)
-            st.markdown(f"<p>Analisis dilakukan pada <strong>{n_samples} sampel data</strong> dari dataset</p>", unsafe_allow_html=True)
-            
-            with st.spinner("🔄 Menghitung SHAP values... (ini mungkin memakan waktu beberapa detik)"):
-                # Buat SHAP explainer
-                explainer = shap.TreeExplainer(model)
-                shap_values = explainer.shap_values(X_sample)
-                
-                # 1. SHAP Summary Plot (Beeswarm)
-                st.markdown("<h4>🎯 SHAP Summary Plot (Feature Importance + Impact)</h4>", unsafe_allow_html=True)
-                
-                fig1, ax1 = plt.subplots(figsize=(10, 6))
-                shap.summary_plot(shap_values, X_sample, 
-                                feature_names=required_cols,
-                                show=False, plot_size=(10, 6))
-                plt.title("SHAP Summary Plot - Feature Impact Distribution", 
-                         fontsize=14, fontweight='bold', pad=20)
-                st.pyplot(fig1)
-                plt.close()
-                
-                st.info("""
-                **📖 Cara Membaca Plot:**
-                - **Sumbu Y**: Fitur diurutkan berdasarkan tingkat kepentingan (paling penting di atas)
-                - **Sumbu X**: SHAP value (kontribusi terhadap prediksi)
-                - **Warna**: Nilai fitur (Merah = nilai tinggi, Biru = nilai rendah)
-                - **Posisi Titik**: Nilai SHAP positif (kanan) meningkatkan prediksi harga, negatif (kiri) menurunkan
-                """)
-                
-                # 2. SHAP Bar Plot (Feature Importance)
-                st.markdown("<br>", unsafe_allow_html=True)
-                st.markdown("<h4>📊 SHAP Feature Importance</h4>", unsafe_allow_html=True)
-                
-                fig2, ax2 = plt.subplots(figsize=(10, 6))
-                shap.summary_plot(shap_values, X_sample, 
-                                feature_names=required_cols,
-                                plot_type="bar", show=False)
-                plt.title("SHAP Feature Importance", fontsize=14, fontweight='bold', pad=20)
-                st.pyplot(fig2)
-                plt.close()
-                
-                # 3. Interpretasi per Fitur
-                st.markdown("<br>", unsafe_allow_html=True)
-                st.markdown("<h4>🔍 Interpretasi SHAP per Fitur</h4>", unsafe_allow_html=True)
-                
-                # Hitung mean absolute SHAP values
-                mean_abs_shap = np.abs(shap_values).mean(axis=0)
-                feature_importance = pd.DataFrame({
-                    'Feature': required_cols,
-                    'Importance': mean_abs_shap
-                }).sort_values('Importance', ascending=False)
-                
-                # Tampilkan tabel
-                st.dataframe(
-                    feature_importance.style.format({'Importance': '{:.4f}'}),
-                    use_container_width=True
-                )
-                
-                # Interpretasi teks
-                st.markdown("""
-                <div style='background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-                            padding: 1.5rem; border-radius: 15px; color: white; margin: 1rem 0;'>
-                    <h4 style='color: white; margin: 0 0 1rem 0;'>💡 Insight dari SHAP Analysis</h4>
-                    <p style='line-height: 1.8; margin: 0.5rem 0;'>
-                        ✅ <strong>LT (Luas Tanah)</strong> dan <strong>LB (Luas Bangunan)</strong> 
-                        adalah faktor paling dominan dalam menentukan harga rumah di Tebet
-                    </p>
-                    <p style='line-height: 1.8; margin: 0.5rem 0;'>
-                        ✅ <strong>KM (Kamar Mandi)</strong> memiliki pengaruh lebih besar dibanding 
-                        <strong>KT (Kamar Tidur)</strong>, mengindikasikan bahwa fasilitas sanitasi 
-                        lebih dihargai di pasar properti Tebet
-                    </p>
-                    <p style='line-height: 1.8; margin: 0.5rem 0;'>
-                        ✅ <strong>GRS (Garasi)</strong> berkontribusi signifikan karena kelangkaan 
-                        lahan parkir di kawasan padat Tebet
-                    </p>
-                    <p style='line-height: 1.8; margin: 0.5rem 0;'>
-                        ✅ <strong>RASIO_LB_LT</strong> (fitur rekayasa) berhasil menangkap informasi 
-                        tentang efisiensi pemanfaatan lahan
-                    </p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-            st.markdown("</div>", unsafe_allow_html=True)
-            
-        except Exception as e:
-            st.error(f"❌ Error saat menghitung SHAP values: {str(e)}")
-            st.info("""
-            **Kemungkinan penyebab error:**
-            - Dataset tidak memiliki semua kolom yang dibutuhkan (LT, LB, KT, KM, GRS)
-            - Format data tidak sesuai
-            - Model tidak compatible dengan SHAP TreeExplainer
-            
-            Pastikan file dataset DAFTAR-HARGA-RUMAH.xlsx tersedia dan memiliki struktur kolom yang benar.
-            """)
-    
-    else:
-        st.warning("⚠️ Dataset tidak tersedia. SHAP Analysis memerlukan file 'DAFTAR-HARGA-RUMAH.xlsx'")
+            # Hitung SHAP values
+            explainer = shap.TreeExplainer(model)
+            shap_values = explainer.shap_values(X_sample)
+
+        # SHAP Feature Importance
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
+        st.markdown("<h3>📊 SHAP Feature Importance (Global)</h3>", unsafe_allow_html=True)
+        plt.clf()
+        fig, ax = plt.subplots(figsize=(10, 6))
+        shap.summary_plot(
+            shap_values,
+            X_sample,
+            feature_names=required_cols,
+            plot_type="bar",
+            show=False
+        )
+        plt.title("SHAP Feature Importance", fontsize=14, fontweight='bold', pad=20)
+        st.pyplot(plt.gcf())
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        # SHAP Summary Plot
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
+        st.markdown("<h3>🎯 SHAP Summary Plot</h3>", unsafe_allow_html=True)
+        st.markdown("<p>Visualisasi distribusi SHAP values untuk setiap fitur. Warna menunjukkan nilai fitur (merah = tinggi, biru = rendah)</p>", unsafe_allow_html=True)
+        plt.clf()
+        fig, ax = plt.subplots(figsize=(10, 6))
+        shap.summary_plot(
+            shap_values,
+            X_sample,
+            feature_names=required_cols,
+            show=False
+        )
+        plt.title("SHAP Summary Plot", fontsize=14, fontweight='bold', pad=20)
+        st.pyplot(plt.gcf())
+        st.markdown("</div>", unsafe_allow_html=True)
 
 # ===============================
 # FOOTER
@@ -1009,5 +1006,3 @@ st.markdown("""
     </p>
 </div>
 """, unsafe_allow_html=True)
-
-
